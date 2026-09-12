@@ -2,8 +2,8 @@ name: neeraj
 
 on:
   workflow_dispatch:
-     inputs : 
-      region :
+    inputs: 
+      region:
         description: "Enter your region : "
         required: true  
         type: string 
@@ -15,14 +15,18 @@ env:
 
 jobs:
   ec2-instance:
-    runs-on : ubuntu-latest
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: module
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      
       - name: Terraform hashicorp setup
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v3
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -30,14 +34,10 @@ jobs:
           aws-region: ${{ env.aws_region }} 
       
       - name: terraform init
-        run: |
-          cd module
-          terraform init -reconfigure -backend-config="bucket=${{ env.BUCKET}}" -backend-config="key=${{ env.TFSTATE_FILE }}" -backend-config="region=${{ env.aws_region }}"
+        run: terraform init -reconfigure -backend-config="bucket=${{ env.BUCKET }}" -backend-config="key=${{ env.TFSTATE_FILE }}" -backend-config="region=${{ env.aws_region }}"
+      
       - name: terraform plan
-        run: |
-          cd module
-          terraform plan
+        run: terraform plan
+      
       - name: terraform apply
-        run: |
-          cd module 
-          terraform apply -auto-approve
+        run: terraform apply -auto-approve
